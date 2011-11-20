@@ -37,10 +37,10 @@ public:
 	hash_map<const char*, const char*, hash<const char* >, eqstr> entries;
 };*/
 
-/*struct values{
+struct values{
 	int index;
 	int count;
-};*/
+};
 class CompDecomp{
 
 public:
@@ -169,10 +169,11 @@ int Compress::runAlgorithm(){
 
 int Compress::findDictionary(string itemsInFile[MAX_ELEMENTS], int noOfElements){
 
-	hash_map< const char*, int, hash<const char*>, eqstr> localMap;
-	hash_map< const char*,int,hash<const char*>,eqstr >:: iterator checkEntry;
-	//struct values val;
-	int count = 1;
+	hash_map< const char*, struct values*, hash<const char*>, eqstr> localMap;
+	hash_map< const char*,struct values*,hash<const char*>,eqstr >:: iterator checkEntry;
+	hash_map< const char*,int,hash<const char*>,eqstr >:: iterator checkEntryForFrequency;
+	struct values* val;
+	// count = 1;
 	//char* tempElement;
 	//cout<<"No. of elements "<<noOfElements<<endl;
 	//tempElement = new char[200];
@@ -187,17 +188,21 @@ int Compress::findDictionary(string itemsInFile[MAX_ELEMENTS], int noOfElements)
 
 		if(checkEntry == localMap.end()){
 			//Means not found
+			val = (struct values*)malloc(sizeof(struct values));
+			val->count = 1;
+			val->index = localMap.size();
 			//val.count = 1;
 			//val.index = localMap.size();
-			localMap[itemsInFile[i].c_str()] = 1;
-			cout<<" New entry => "<<localMap[itemsInFile[i].c_str()]<<endl;
+			localMap[itemsInFile[i].c_str()] = val;
+			//cout<<" New entry => "<<localMap[itemsInFile[i].c_str()]<<endl;
 		}else{
 			//Means found
-			cout<<"Iterator "<<checkEntry->first;
-			count = localMap[itemsInFile[i].c_str()]+1;
+			//cout<<"Iterator "<<checkEntry->first;
+			localMap[itemsInFile[i].c_str()]->count +=1;
+			//count = localMap[itemsInFile[i].c_str()]+1;
 			//val.index = entries[itemsInFile[i].c_str()].index;
-			localMap[itemsInFile[i].c_str()] = count;
-			cout<<" Old Entry  => "<<localMap[itemsInFile[i].c_str()]<<endl;
+			//localMap[itemsInFile[i].c_str()] = count;
+			//cout<<" Old Entry  => "<<localMap[itemsInFile[i].c_str()]<<endl;
 		}
 		//delete tempElement;
 		//tempElement = NULL;
@@ -209,11 +214,11 @@ int Compress::findDictionary(string itemsInFile[MAX_ELEMENTS], int noOfElements)
 	int max = 1;
 
 	for(checkEntry = localMap.begin(); checkEntry != localMap.end(); checkEntry++){
-		cout<<"Key "<<checkEntry->first<<" :: value "<<checkEntry->second<<endl;
+		cout<<"Key "<<checkEntry->first<<" :: value "<<checkEntry->second->count<<endl;
 	}
 
 	char *element;
-	//Finding the most frequent ones
+	//Finding the most frequent ones in particular order
 	for (int i =0;i <DICTIONARY_SIZE; i++){
 
 		element= new char[33];
@@ -223,15 +228,22 @@ int Compress::findDictionary(string itemsInFile[MAX_ELEMENTS], int noOfElements)
 			//		cout<<checkEntry->first<<" "<<checkEntry->second<<endl;
 
 			//cout<<"From map "<<checkEntry->first<<endl;
-			if(localMap[checkEntry->first] >max){
+			if(localMap[checkEntry->first]->count >max){
 				//delete element;
 				//element = new char[100];
 				strcpy(element,checkEntry->first);
 				//element = checkEntry->first;
 				//cout<<"Element "<<element<<" from map "<<checkEntry->first<<endl;
-				max = localMap[checkEntry->first];
+				max = localMap[checkEntry->first]->count;
 
 
+			}else if(localMap[checkEntry->first]->count == max){
+				//Then take the one with lower index
+				if(localMap[checkEntry->first]->index < localMap[element]->index){
+					strcpy(element,checkEntry->first);
+
+					max = localMap[checkEntry->first]->count;
+				}
 			}
 			cout<<i<< "th element is "<<element<<endl;
 		}
@@ -243,8 +255,8 @@ int Compress::findDictionary(string itemsInFile[MAX_ELEMENTS], int noOfElements)
 	}
 	//delete element;
 	cout<<"Size of dictionary "<<entries.size()<<endl;
-	for(checkEntry = entries.begin(); checkEntry != entries.end(); checkEntry++){
-		cout<<checkEntry->first<<endl;
+	for(checkEntryForFrequency = entries.begin(); checkEntryForFrequency != entries.end(); checkEntryForFrequency++){
+		cout<<checkEntryForFrequency->first<<" "<<checkEntryForFrequency->second<<endl;
 	}
 	return SUCCESS;
 }
